@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${{ values.appName }}
+  labels:
+    app: ${{ values.appName }}
+    backstage.io/kubernetes-id: ${{ values.appName }}
+spec:
+  selector:
+    matchLabels:
+      app: ${{ values.appName }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+      labels:
+        app: ${{ values.appName }}
+        backstage.io/kubernetes-id: ${{ values.appName }}
+    spec:
+      containers:
+        - name: ${{ values.appName }}
+          image: ${{ values.registryUrl }}/${{ values.registryGroup }}/${{ values.appName }}:1.0
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            limits:
+              memory: 1024Mi
+          {% if values.enabledDB %}
+          env:
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  key: db-user
+                  name: ${{ values.appName }}
+            - name: DATABASE_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: db-password
+                  name: ${{ values.appName }}
+          {% endif %}
+          {% if values.secretReferences and values.secretReferences | length > 0 %}
+          env:
+            {% for secret in values.secretReferences %}
+            - name: ${{ secret.key }}
+              valueFrom:
+                secretKeyRef:
+                  key: ${{ secret.key }}
+                  name: ${{ secret.secretName }}
+            {% endfor %}
+          {% endif %}
