@@ -28,7 +28,7 @@ spec:
         appName:
           title: Nome da Aplicação
           type: string
-          description: Nome único em kebab-case (ex: minha-api)
+          description: Nome único em kebab-case
           ui:autofocus: true
           ui:options:
             rows: 1
