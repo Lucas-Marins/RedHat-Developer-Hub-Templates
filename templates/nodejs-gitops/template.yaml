@@ -1,0 +1,209 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: nodejs-gitops-app
+  title: Node.js App com GitOps (ArgoCD)
+  description: >
+    Cria uma aplicação Node.js (Express) com GitHub Actions para build de Docker
+    e um repositório separado para manifests GitOps (ArgoCD).
+  tags:
+    - nodejs
+    - express
+    - docker
+    - github-actions
+    - gitops
+    - argocd
+    - openshift
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: Informações da Aplicação
+      required:
+        - appName
+        - description
+        - owner
+      properties:
+        appName:
+          title: Nome da Aplicação
+          type: string
+          description: Nome único em kebab-case (ex: minha-api)
+          ui:autofocus: true
+          ui:options:
+            rows: 1
+
+        description:
+          title: Descrição
+          type: string
+          description: Breve descrição do que a aplicação faz
+
+        owner:
+          title: Time Responsável
+          type: string
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+
+    - title: Configurações OpenShift
+      required:
+        - namespace
+      properties:
+        namespace:
+          title: Namespace OpenShift
+          type: string
+          description: Namespace onde o app será deployado
+          default: nodejs-apps
+
+        environment:
+          title: Ambiente Inicial
+          type: string
+          default: dev
+          enum:
+            - dev
+            - hml
+            - prd
+          enumNames:
+            - Desenvolvimento
+            - Homologação
+            - Produção
+
+        replicas:
+          title: Número de Réplicas
+          type: number
+          default: 1
+          minimum: 1
+          maximum: 5
+
+    - title: Repositórios GitHub
+      required:
+        - appRepoUrl
+        - gitopsRepoUrl
+      properties:
+        appRepoUrl:
+          title: URL do Repositório da Aplicação
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+        gitopsRepoUrl:
+          title: URL do Repositório GitOps (ArgoCD)
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    # ========== PASSO 1: Gerar código da aplicação ==========
+    - id: fetch-app
+      name: Gerar Código da Aplicação
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          appName: ${{ parameters.appName }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+          namespace: ${{ parameters.namespace }}
+          environment: ${{ parameters.environment }}
+          replicas: ${{ parameters.replicas }}
+          port: 3000
+
+    # ========== PASSO 2: Criar repo da aplicação ==========
+    - id: publish-app
+      name: Criar Repositório da Aplicação
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.appRepoUrl }}
+        defaultBranch: main
+        repoVisibility: private
+        sourcePath: ./
+
+    # ========== PASSO 3: Criar repo GitOps com manifests ==========
+    - id: publish-gitops
+      name: Criar Repositório GitOps
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.gitopsRepoUrl }}
+        defaultBranch: main
+        repoVisibility: private
+        sourcePath: ./k8s
+
+    # ========== PASSO 4: Registrar app no catálogo ==========
+    - id: register
+      name: Registrar no Catálogo
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish-app'].output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+
+    # ========== PASSO 5: Criar Application no ArgoCD via API ==========
+    - id: create-argocd
+      name: Criar Aplicação no ArgoCD
+      action: http:backstage:request
+      input:
+        method: POST
+        path: /api/argocd/applications
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "apiVersion": "argoproj.io/v1alpha1",
+            "kind": "Application",
+            "metadata": {
+              "name": "${{ parameters.appName }}-${{ parameters.environment }}",
+              "namespace": "openshift-gitops"
+            },
+            "spec": {
+              "project": "default",
+              "source": {
+                "repoURL": "${{ steps['publish-gitops'].output.remoteUrl }}",
+                "path": "overlays/${{ parameters.environment }}",
+                "targetRevision": "HEAD"
+              },
+              "destination": {
+                "server": "https://kubernetes.default.svc",
+                "namespace": "${{ parameters.namespace }}"
+              },
+              "syncPolicy": {
+                "automated": {
+                  "prune": true,
+                  "selfHeal": true
+                },
+                "syncOptions": ["CreateNamespace=true"]
+              }
+            }
+          }
+
+  output:
+    links:
+      - title: Repositório da Aplicação
+        url: ${{ steps['publish-app'].output.remoteUrl }}
+        icon: github
+      - title: Repositório GitOps
+        url: ${{ steps['publish-gitops'].output.remoteUrl }}
+        icon: cloud
+      - title: Ver no Catálogo
+        url: ${{ steps['publish-app'].output.catalogInfoUrl }}
+        icon: catalog
+      - title: Aplicação no ArgoCD
+        url: https://openshift-gitops-server-openshift-gitops.apps.cluster-7zcgx.dynamic.redhatworkshops.io/applications/${{ parameters.appName }}-${{ parameters.environment }}
+        icon: catalog
+    text:
+      - title: Próximos Passos
+        content: |
+          ✅ Repositório da aplicação criado no GitHub
+          ✅ Repositório GitOps criado no GitHub
+          ✅ Aplicação registrada no catálogo
+          ✅ Aplicação ArgoCD criada
+
+          **Para fazer o primeiro deploy:**
+          1. Clone o repo da aplicação: `git clone ${{ steps['publish-app'].output.remoteUrl }}`
+          2. Faça push para a branch main
+          3. A GitHub Action vai buildar a imagem Docker
+          4. Atualize a tag da imagem no repo GitOps
+          5. O ArgoCD vai sincronizar automaticamente

@@ -1,0 +1,15 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: ${{ values.appName }}
+  labels:
+    app: ${{ values.appName }}
+spec:
+  to:
+    kind: Service
+    name: ${{ values.appName }}
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

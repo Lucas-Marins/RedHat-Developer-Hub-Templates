@@ -6,6 +6,7 @@ metadata:
 spec:
   type: url
   targets:
+    - templates/nodejs-gitops/template.yaml
     - templates/spring-boot-basic/template.yaml
     - templates/spring-boot-basic-on-openshift/template.yaml
     - templates/spring-ai-on-openshift/template.yaml
