@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ${{ values.appName }}-appset
+  namespace: openshift-gitops
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            replicas: "1"
+  template:
+    metadata:
+      name: ${{ values.appName }}-{{env}}
+      namespace: openshift-gitops
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/${{ values.githubOrg }}/${{ values.appName }}-gitops.git
+        targetRevision: HEAD
+        path: overlays/{{env}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: ${{ values.namespace }}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
