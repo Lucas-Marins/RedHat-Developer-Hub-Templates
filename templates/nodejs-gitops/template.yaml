@@ -94,7 +94,7 @@ spec:
           title: Usuário do Docker Hub
           type: string
           description: Usado para montar o path da imagem nos manifests (não é secret)
-          default: seu_usuario_dockerhub
+          default: 123l
 
         repoVisibility:
           title: Visibilidade dos Repositórios
