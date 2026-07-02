@@ -5,11 +5,12 @@ metadata:
   title: Node.js App com GitOps (ArgoCD)
   description: >
     Cria uma aplicação Node.js (Express) com GitHub Actions para build de Docker
-    e um repositório separado para manifests GitOps (ArgoCD).
+    (Docker Hub) e um repositório separado para manifests GitOps (ArgoCD).
   tags:
     - nodejs
     - express
     - docker
+    - dockerhub
     - github-actions
     - gitops
     - argocd
@@ -28,7 +29,8 @@ spec:
         appName:
           title: Nome da Aplicação
           type: string
-          description: Nome único em kebab-case
+          description: Nome único em kebab-case (será usado como nome dos repositórios)
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
           ui:autofocus: true
           ui:options:
             rows: 1
@@ -49,6 +51,7 @@ spec:
     - title: Configurações OpenShift
       required:
         - namespace
+        - environment
       properties:
         namespace:
           title: Namespace OpenShift
@@ -76,26 +79,39 @@ spec:
           minimum: 1
           maximum: 5
 
-    - title: Repositórios GitHub
+    - title: Configurações GitHub e Docker Hub
       required:
-        - appRepoUrl
-        - gitopsRepoUrl
+        - githubOrg
+        - dockerHubUsername
+        - dockerHubToken
       properties:
-        appRepoUrl:
-          title: URL do Repositório da Aplicação
+        githubOrg:
+          title: Organização do GitHub
           type: string
-          ui:field: RepoUrlPicker
-          ui:options:
-            allowedHosts:
-              - github.com
+          description: Organização ou usuário do GitHub onde os repositórios serão criados
+          default: Lucas-Marins
 
-        gitopsRepoUrl:
-          title: URL do Repositório GitOps (ArgoCD)
+        dockerHubUsername:
+          title: Usuário do Docker Hub
           type: string
-          ui:field: RepoUrlPicker
-          ui:options:
-            allowedHosts:
-              - github.com
+          description: Nome de usuário no Docker Hub para publicar as imagens
+
+        dockerHubToken:
+          title: Token de Acesso do Docker Hub
+          type: string
+          description: Token de acesso pessoal do Docker Hub (não a senha!)
+          ui:widget: password
+
+        repoVisibility:
+          title: Visibilidade dos Repositórios
+          type: string
+          default: private
+          enum:
+            - public
+            - private
+          enumNames:
+            - Público
+            - Privado
 
   steps:
     # ========== PASSO 1: Gerar código da aplicação ==========
@@ -111,29 +127,51 @@ spec:
           namespace: ${{ parameters.namespace }}
           environment: ${{ parameters.environment }}
           replicas: ${{ parameters.replicas }}
+          githubOrg: ${{ parameters.githubOrg }}
+          dockerHubUsername: ${{ parameters.dockerHubUsername }}
           port: 3000
 
-    # ========== PASSO 2: Criar repo da aplicação ==========
+    # ========== PASSO 2: Criar secrets Docker Hub no repo da app ==========
+    - id: create-secrets
+      name: Criar Secrets Docker Hub
+      action: github:actions:repo:createEnvironmentVariable
+      input:
+        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
+        secrets:
+          - name: DOCKER_USERNAME
+            value: ${{ parameters.dockerHubUsername }}
+          - name: DOCKER_PASSWORD
+            value: ${{ parameters.dockerHubToken }}
+
+    # ========== PASSO 3: Remover pasta k8s do repo da app ==========
+    - id: cleanup-app
+      name: Limpar pasta k8s do repo da app
+      action: fs:delete
+      input:
+        files:
+          - ./k8s
+
+    # ========== PASSO 4: Criar repo da aplicação ==========
     - id: publish-app
       name: Criar Repositório da Aplicação
       action: publish:github
       input:
-        repoUrl: ${{ parameters.appRepoUrl }}
+        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
         defaultBranch: main
-        repoVisibility: private
+        repoVisibility: ${{ parameters.repoVisibility }}
         sourcePath: ./
 
-    # ========== PASSO 3: Criar repo GitOps com manifests ==========
+    # ========== PASSO 5: Criar repo GitOps com manifests ==========
     - id: publish-gitops
       name: Criar Repositório GitOps
       action: publish:github
       input:
-        repoUrl: ${{ parameters.gitopsRepoUrl }}
+        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}-gitops"
         defaultBranch: main
-        repoVisibility: private
+        repoVisibility: ${{ parameters.repoVisibility }}
         sourcePath: ./k8s
 
-    # ========== PASSO 4: Registrar app no catálogo ==========
+    # ========== PASSO 6: Registrar app no catálogo ==========
     - id: register
       name: Registrar no Catálogo
       action: catalog:register
@@ -141,7 +179,7 @@ spec:
         repoContentsUrl: ${{ steps['publish-app'].output.repoContentsUrl }}
         catalogInfoPath: /catalog-info.yaml
 
-    # ========== PASSO 5: Criar Application no ArgoCD via API ==========
+    # ========== PASSO 7: Criar Application no ArgoCD via API ==========
     - id: create-argocd
       name: Criar Aplicação no ArgoCD
       action: http:backstage:request
@@ -191,19 +229,19 @@ spec:
         url: ${{ steps['publish-app'].output.catalogInfoUrl }}
         icon: catalog
       - title: Aplicação no ArgoCD
-        url: https://openshift-gitops-server-openshift-gitops.apps.cluster-7zcgx.dynamic.redhatworkshops.io/applications/${{ parameters.appName }}-${{ parameters.environment }}
+        url: https://openshift-gitops-server-openshift-gitops.apps.cluster-xv7kd.dynamic.redhatworkshops.io/applications/${{ parameters.appName }}-${{ parameters.environment }}
         icon: catalog
     text:
       - title: Próximos Passos
         content: |
-          ✅ Repositório da aplicação criado no GitHub
-          ✅ Repositório GitOps criado no GitHub
+          ✅ Repositório da aplicação criado: `${{ parameters.githubOrg }}/${{ parameters.appName }}`
+          ✅ Repositório GitOps criado: `${{ parameters.githubOrg }}/${{ parameters.appName }}-gitops`
+          ✅ Secrets DOCKER_USERNAME e DOCKER_PASSWORD criados automaticamente
           ✅ Aplicação registrada no catálogo
           ✅ Aplicação ArgoCD criada
 
           **Para fazer o primeiro deploy:**
-          1. Clone o repo da aplicação: `git clone ${{ steps['publish-app'].output.remoteUrl }}`
-          2. Faça push para a branch main
-          3. A GitHub Action vai buildar a imagem Docker
-          4. Atualize a tag da imagem no repo GitOps
-          5. O ArgoCD vai sincronizar automaticamente
+          1. Clone o repo: `git clone ${{ steps['publish-app'].output.remoteUrl }}`
+          2. Faça push para a branch `main`
+          3. A GitHub Action vai buildar a imagem Docker e publicar no Docker Hub
+          4. O ArgoCD vai sincronizar automaticamente

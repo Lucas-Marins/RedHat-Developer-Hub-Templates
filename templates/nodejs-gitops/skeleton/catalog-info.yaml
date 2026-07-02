@@ -4,7 +4,7 @@ metadata:
   name: ${{ values.appName }}
   description: ${{ values.description }}
   annotations:
-    github.com/project-slug: Lucas-Marins/${{ values.appName }}
+    github.com/project-slug: ${{ values.githubOrg }}/${{ values.appName }}
     backstage.io/kubernetes-id: ${{ values.appName }}
     backstage.io/kubernetes-namespace: ${{ values.namespace }}
     argocd/app-name: ${{ values.appName }}-${{ values.environment }}
@@ -15,6 +15,6 @@ metadata:
     - gitops
 spec:
   type: service
-  lifecycle: ${{ values.environment == 'prd' and 'production' or 'experimental' }}
+  lifecycle: ${{ values.environment == 'prd' && 'production' || 'experimental' }}
   owner: ${{ values.owner }}
   system: nodejs-apps

@@ -7,6 +7,4 @@ resources:
   - route.yaml
 
 commonLabels:
-  app.kubernetes.io/name: ${{ values.appName }}
-  app.kubernetes.io/part-of: ${{ values.appName }}
-  app.kubernetes.io/managed-by: argocd
+  app: ${{ values.appName }}

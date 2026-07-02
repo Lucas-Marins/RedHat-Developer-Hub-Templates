@@ -9,7 +9,7 @@ resources:
 namePrefix: dev-
 
 images:
-  - name: ghcr.io/lucas-marins/${{ values.appName }}
+  - name: docker.io/${{ values.dockerHubUsername }}/${{ values.appName }}
     newTag: latest
 
 replicas:

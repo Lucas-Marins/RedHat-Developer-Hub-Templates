@@ -4,8 +4,6 @@ metadata:
   name: ${{ values.appName }}
   labels:
     app: ${{ values.appName }}
-    app.kubernetes.io/name: ${{ values.appName }}
-    app.kubernetes.io/part-of: ${{ values.appName }}
 spec:
   replicas: ${{ values.replicas }}
   selector:
@@ -18,39 +16,11 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/lucas-marins/${{ values.appName }}:latest
+          image: docker.io/${{ values.dockerHubUsername }}/${{ values.appName }}:latest
           ports:
             - containerPort: 3000
-              protocol: TCP
           env:
             - name: NODE_ENV
               value: production
             - name: PORT
               value: "3000"
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
-            capabilities:
-              drop:
-                - ALL
