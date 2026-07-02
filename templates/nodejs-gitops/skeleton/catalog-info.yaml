@@ -15,6 +15,6 @@ metadata:
     - gitops
 spec:
   type: service
-  lifecycle: ${{ values.environment == 'prd' && 'production' || 'experimental' }}
+  lifecycle: ${{ values.environment == 'prd' and 'production' or 'experimental' }}
   owner: ${{ values.owner }}
   system: nodejs-apps

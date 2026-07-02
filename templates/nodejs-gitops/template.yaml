@@ -100,7 +100,7 @@ spec:
           title: Token de Acesso do Docker Hub
           type: string
           description: Token de acesso pessoal do Docker Hub (não a senha!)
-          ui:widget: password
+          ui:widget: Secret
 
         repoVisibility:
           title: Visibilidade dos Repositórios
