@@ -159,6 +159,23 @@ spec:
         repoVisibility: ${{ parameters.repoVisibility }}
         sourcePath: ./
 
+        # ========== PASSO 4.5: Criar secrets no repo da app ==========
+    - id: create-docker-secrets
+      name: Configurar Secrets do Docker Hub
+      action: github:actions:createSecret
+      input:
+        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
+        secretName: DOCKER_USERNAME
+        secretValue: ${{ parameters.dockerHubUsername }}
+
+    - id: create-docker-secrets-token
+      name: Configurar Token do Docker Hub
+      action: github:actions:createSecret
+      input:
+        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
+        secretName: DOCKER_PASSWORD
+        secretValue: ${{ parameters.dockerHubToken }}
+
     # ========== PASSO 5: Registrar app no catálogo ==========
     - id: register
       name: Registrar no Catálogo
