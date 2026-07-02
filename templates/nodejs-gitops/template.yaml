@@ -79,33 +79,28 @@ spec:
           minimum: 1
           maximum: 5
 
-    - title: Configurações GitHub e Docker Hub
+    # ========== Docker Hub token removido: agora é secret de Org ==========
+    - title: Configurações GitHub
       required:
         - githubOrg
-        - dockerHubUsername
-        - dockerHubToken
       properties:
         githubOrg:
           title: Organização do GitHub
           type: string
-          description: Organização ou usuário do GitHub onde os repositórios serão criados
-          default: Lucas-Marins
+          description: Organização onde os repositórios serão criados
+          default: Org-LucasTSST
 
         dockerHubUsername:
           title: Usuário do Docker Hub
           type: string
-          description: Nome de usuário no Docker Hub para publicar as imagens
-
-        dockerHubToken:
-          title: Token de Acesso do Docker Hub
-          type: string
-          description: Token de acesso pessoal do Docker Hub (não a senha!)
-          ui:field: Secret
+          description: Usado para montar o path da imagem nos manifests (não é secret)
+          default: seu_usuario_dockerhub
 
         repoVisibility:
           title: Visibilidade dos Repositórios
           type: string
-          default: private
+          description: Free plan só libera org-secret pra repo público
+          default: public
           enum:
             - public
             - private
@@ -159,23 +154,6 @@ spec:
         repoVisibility: ${{ parameters.repoVisibility }}
         sourcePath: ./
 
-        # ========== PASSO 4.5: Criar secrets no repo da app ==========
-    - id: create-docker-secrets
-      name: Configurar Secrets do Docker Hub
-      action: github:actions:createSecret
-      input:
-        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
-        secretName: DOCKER_USERNAME
-        secretValue: ${{ parameters.dockerHubUsername }}
-
-    - id: create-docker-secrets-token
-      name: Configurar Token do Docker Hub
-      action: github:actions:createSecret
-      input:
-        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
-        secretName: DOCKER_PASSWORD
-        secretValue: ${{ parameters.dockerHubToken }}
-
     # ========== PASSO 5: Registrar app no catálogo ==========
     - id: register
       name: Registrar no Catálogo
@@ -199,17 +177,10 @@ spec:
         url: https://openshift-gitops-server-openshift-gitops.apps.cluster-xv7kd.dynamic.redhatworkshops.io/applications/${{ parameters.appName }}-${{ parameters.environment }}
         icon: catalog
     text:
-      - title: ⚠️ Configure os secrets do Docker Hub
+      - title: Crie a aplicação no ArgoCD manualmente
         content: |
-          Os repositórios foram criados, mas você precisa adicionar 2 secrets no GitHub antes do primeiro build:
+          Os secrets do Docker Hub já estão configurados via Org-LucasTSST — nada a fazer aí.
 
-          1. Acesse: ${{ steps['publish-app'].output.remoteUrl }}/settings/secrets/actions
-          2. Clique em **New repository secret**
-          3. Adicione:
-             - `DOCKER_USERNAME` = ${{ parameters.dockerHubUsername }}
-             - `DOCKER_PASSWORD` = ${{ parameters.dockerHubToken }}
-
-          **Crie a aplicação no ArgoCD manualmente:**
           1. Acesse: https://openshift-gitops-server-openshift-gitops.apps.cluster-xv7kd.dynamic.redhatworkshops.io
           2. New App → Name: `${{ parameters.appName }}-${{ parameters.environment }}`
           3. Source: `${{ steps['publish-gitops'].output.remoteUrl }}`
@@ -217,8 +188,4 @@ spec:
           5. Destination: namespace `${{ parameters.namespace }}`
           6. Enable Auto-Sync
 
-          **Depois disso:**
-          1. Clone o repo: `git clone ${{ steps['publish-app'].output.remoteUrl }}`
-          2. Faça push para a branch `main`
-          3. A GitHub Action vai buildar a imagem Docker e publicar no Docker Hub
-          4. O ArgoCD vai sincronizar automaticamente
+          Depois disso, qualquer push na branch `main` do repo da app já builda, publica no Docker Hub e o ArgoCD sincroniza sozinho.
