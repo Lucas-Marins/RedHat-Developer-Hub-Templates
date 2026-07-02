@@ -100,7 +100,7 @@ spec:
           title: Token de Acesso do Docker Hub
           type: string
           description: Token de acesso pessoal do Docker Hub (não a senha!)
-          ui:widget: password
+          ui:field: Secret
 
         repoVisibility:
           title: Visibilidade dos Repositórios
@@ -131,25 +131,7 @@ spec:
           dockerHubUsername: ${{ parameters.dockerHubUsername }}
           port: 3000
 
-    # ========== PASSO 2: Remover pasta k8s do repo da app ==========
-    - id: cleanup-app
-      name: Limpar pasta k8s do repo da app
-      action: fs:delete
-      input:
-        files:
-          - ./k8s
-
-    # ========== PASSO 3: Criar repo da aplicação ==========
-    - id: publish-app
-      name: Criar Repositório da Aplicação
-      action: publish:github
-      input:
-        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
-        defaultBranch: main
-        repoVisibility: ${{ parameters.repoVisibility }}
-        sourcePath: ./
-
-    # ========== PASSO 4: Criar repo GitOps com manifests ==========
+    # ========== PASSO 2: Criar repo GitOps PRIMEIRO (antes de deletar k8s) ==========
     - id: publish-gitops
       name: Criar Repositório GitOps
       action: publish:github
@@ -159,6 +141,24 @@ spec:
         repoVisibility: ${{ parameters.repoVisibility }}
         sourcePath: ./k8s
 
+    # ========== PASSO 3: Remover pasta k8s do repo da app ==========
+    - id: cleanup-app
+      name: Limpar pasta k8s do repo da app
+      action: fs:delete
+      input:
+        files:
+          - ./k8s
+
+    # ========== PASSO 4: Criar repo da aplicação ==========
+    - id: publish-app
+      name: Criar Repositório da Aplicação
+      action: publish:github
+      input:
+        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
+        defaultBranch: main
+        repoVisibility: ${{ parameters.repoVisibility }}
+        sourcePath: ./
+
     # ========== PASSO 5: Registrar app no catálogo ==========
     - id: register
       name: Registrar no Catálogo
@@ -166,44 +166,6 @@ spec:
       input:
         repoContentsUrl: ${{ steps['publish-app'].output.repoContentsUrl }}
         catalogInfoPath: /catalog-info.yaml
-
-    # ========== PASSO 6: Criar Application no ArgoCD via API ==========
-    - id: create-argocd
-      name: Criar Aplicação no ArgoCD
-      action: http:backstage:request
-      input:
-        method: POST
-        path: /api/argocd/applications
-        headers:
-          Content-Type: application/json
-        body: |
-          {
-            "apiVersion": "argoproj.io/v1alpha1",
-            "kind": "Application",
-            "metadata": {
-              "name": "${{ parameters.appName }}-${{ parameters.environment }}",
-              "namespace": "openshift-gitops"
-            },
-            "spec": {
-              "project": "default",
-              "source": {
-                "repoURL": "${{ steps['publish-gitops'].output.remoteUrl }}",
-                "path": "overlays/${{ parameters.environment }}",
-                "targetRevision": "HEAD"
-              },
-              "destination": {
-                "server": "https://kubernetes.default.svc",
-                "namespace": "${{ parameters.namespace }}"
-              },
-              "syncPolicy": {
-                "automated": {
-                  "prune": true,
-                  "selfHeal": true
-                },
-                "syncOptions": ["CreateNamespace=true"]
-              }
-            }
-          }
 
   output:
     links:
@@ -229,6 +191,14 @@ spec:
           3. Adicione:
              - `DOCKER_USERNAME` = ${{ parameters.dockerHubUsername }}
              - `DOCKER_PASSWORD` = ${{ parameters.dockerHubToken }}
+
+          **Crie a aplicação no ArgoCD manualmente:**
+          1. Acesse: https://openshift-gitops-server-openshift-gitops.apps.cluster-xv7kd.dynamic.redhatworkshops.io
+          2. New App → Name: `${{ parameters.appName }}-${{ parameters.environment }}`
+          3. Source: `${{ steps['publish-gitops'].output.remoteUrl }}`
+          4. Path: `overlays/${{ parameters.environment }}`
+          5. Destination: namespace `${{ parameters.namespace }}`
+          6. Enable Auto-Sync
 
           **Depois disso:**
           1. Clone o repo: `git clone ${{ steps['publish-app'].output.remoteUrl }}`
