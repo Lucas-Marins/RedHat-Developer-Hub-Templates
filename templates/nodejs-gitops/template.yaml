@@ -90,6 +90,7 @@ spec:
           type: string
           description: Organização ou usuário do GitHub onde os repositórios serão criados
           default: Lucas-Marins
+          
 
         dockerHubUsername:
           title: Usuário do Docker Hub
