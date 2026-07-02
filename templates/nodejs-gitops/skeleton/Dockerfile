@@ -3,7 +3,8 @@ FROM registry.access.redhat.com/ubi9/nodejs-18:latest
 WORKDIR /opt/app-root/src
 
 COPY package*.json ./
-RUN npm ci --only=production
+#RUN npm ci --only=production
+RUN npm install 
 
 COPY src/ ./src/
 
