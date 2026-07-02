@@ -90,7 +90,6 @@ spec:
           type: string
           description: Organização ou usuário do GitHub onde os repositórios serão criados
           default: Lucas-Marins
-          
 
         dockerHubUsername:
           title: Usuário do Docker Hub
@@ -101,7 +100,7 @@ spec:
           title: Token de Acesso do Docker Hub
           type: string
           description: Token de acesso pessoal do Docker Hub (não a senha!)
-          ui:field: Secret
+          ui:widget: password
 
         repoVisibility:
           title: Visibilidade dos Repositórios
@@ -132,19 +131,7 @@ spec:
           dockerHubUsername: ${{ parameters.dockerHubUsername }}
           port: 3000
 
-    # ========== PASSO 2: Criar secrets Docker Hub no repo da app ==========
-    - id: create-secrets
-      name: Criar Secrets Docker Hub
-      action: github:actions:repo:createEnvironmentVariable
-      input:
-        repoUrl: "github.com?owner=${{ parameters.githubOrg }}&repo=${{ parameters.appName }}"
-        secrets:
-          - name: DOCKER_USERNAME
-            value: ${{ parameters.dockerHubUsername }}
-          - name: DOCKER_PASSWORD
-            value: ${{ parameters.dockerHubToken }}
-
-    # ========== PASSO 3: Remover pasta k8s do repo da app ==========
+    # ========== PASSO 2: Remover pasta k8s do repo da app ==========
     - id: cleanup-app
       name: Limpar pasta k8s do repo da app
       action: fs:delete
@@ -152,7 +139,7 @@ spec:
         files:
           - ./k8s
 
-    # ========== PASSO 4: Criar repo da aplicação ==========
+    # ========== PASSO 3: Criar repo da aplicação ==========
     - id: publish-app
       name: Criar Repositório da Aplicação
       action: publish:github
@@ -162,7 +149,7 @@ spec:
         repoVisibility: ${{ parameters.repoVisibility }}
         sourcePath: ./
 
-    # ========== PASSO 5: Criar repo GitOps com manifests ==========
+    # ========== PASSO 4: Criar repo GitOps com manifests ==========
     - id: publish-gitops
       name: Criar Repositório GitOps
       action: publish:github
@@ -172,7 +159,7 @@ spec:
         repoVisibility: ${{ parameters.repoVisibility }}
         sourcePath: ./k8s
 
-    # ========== PASSO 6: Registrar app no catálogo ==========
+    # ========== PASSO 5: Registrar app no catálogo ==========
     - id: register
       name: Registrar no Catálogo
       action: catalog:register
@@ -180,7 +167,7 @@ spec:
         repoContentsUrl: ${{ steps['publish-app'].output.repoContentsUrl }}
         catalogInfoPath: /catalog-info.yaml
 
-    # ========== PASSO 7: Criar Application no ArgoCD via API ==========
+    # ========== PASSO 6: Criar Application no ArgoCD via API ==========
     - id: create-argocd
       name: Criar Aplicação no ArgoCD
       action: http:backstage:request
@@ -233,15 +220,17 @@ spec:
         url: https://openshift-gitops-server-openshift-gitops.apps.cluster-xv7kd.dynamic.redhatworkshops.io/applications/${{ parameters.appName }}-${{ parameters.environment }}
         icon: catalog
     text:
-      - title: Próximos Passos
+      - title: ⚠️ Configure os secrets do Docker Hub
         content: |
-          ✅ Repositório da aplicação criado: `${{ parameters.githubOrg }}/${{ parameters.appName }}`
-          ✅ Repositório GitOps criado: `${{ parameters.githubOrg }}/${{ parameters.appName }}-gitops`
-          ✅ Secrets DOCKER_USERNAME e DOCKER_PASSWORD criados automaticamente
-          ✅ Aplicação registrada no catálogo
-          ✅ Aplicação ArgoCD criada
+          Os repositórios foram criados, mas você precisa adicionar 2 secrets no GitHub antes do primeiro build:
 
-          **Para fazer o primeiro deploy:**
+          1. Acesse: ${{ steps['publish-app'].output.remoteUrl }}/settings/secrets/actions
+          2. Clique em **New repository secret**
+          3. Adicione:
+             - `DOCKER_USERNAME` = ${{ parameters.dockerHubUsername }}
+             - `DOCKER_PASSWORD` = ${{ parameters.dockerHubToken }}
+
+          **Depois disso:**
           1. Clone o repo: `git clone ${{ steps['publish-app'].output.remoteUrl }}`
           2. Faça push para a branch `main`
           3. A GitHub Action vai buildar a imagem Docker e publicar no Docker Hub
