@@ -23,8 +23,8 @@ spec:
     - title: Informações da Aplicação
       required:
         - appName
-        - description
-        - owner
+        # - description
+        # - owner
       properties:
         appName:
           title: Nome da Aplicação
@@ -35,18 +35,18 @@ spec:
           ui:options:
             rows: 1
 
-        description:
-          title: Descrição
-          type: string
-          description: Breve descrição do que a aplicação faz
+        # description:
+        #   title: Descrição
+        #   type: string
+        #   description: Breve descrição do que a aplicação faz
 
-        owner:
-          title: Time Responsável
-          type: string
-          ui:field: OwnerPicker
-          ui:options:
-            allowedKinds:
-              - Group
+        # owner:
+        #   title: Time Responsável
+        #   type: string
+        #   ui:field: OwnerPicker
+        #   ui:options:
+        #     allowedKinds:
+        #       - Group
 
     - title: Configurações OpenShift
       required:
