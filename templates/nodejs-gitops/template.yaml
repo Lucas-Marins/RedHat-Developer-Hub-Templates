@@ -121,6 +121,7 @@ spec:
           owner: ${{ parameters.owner }}
           namespace: ${{ parameters.namespace }}
           environment: ${{ parameters.environment }}
+          env: ${{ parameters.environment }} 
           replicas: ${{ parameters.replicas }}
           githubOrg: ${{ parameters.githubOrg }}
           dockerHubUsername: ${{ parameters.dockerHubUsername }}
