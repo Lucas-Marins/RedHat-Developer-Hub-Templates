@@ -19,7 +19,7 @@ spec:
       project: default
       source:
         repoURL: https://github.com/${{ values.githubOrg }}/${{ values.appName }}-gitops.git
-        targetRevision: HEAD
+        targetRevision: main
         path: overlays/{{env}}
       destination:
         server: https://kubernetes.default.svc
