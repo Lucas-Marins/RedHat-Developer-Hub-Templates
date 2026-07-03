@@ -17,4 +17,11 @@ spec:
   type: service
   lifecycle: experimental
   owner: ${{ values.owner }}
-  system: nodejs-apps
+  system: ${{ values.appName }}-system    # ← System único por app
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: ${{ values.appName }}-system
+spec:
+  owner: ${{ values.owner }}

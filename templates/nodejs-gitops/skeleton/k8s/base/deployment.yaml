@@ -2,16 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ${{ values.appName }}
+  annotations:
+    backstage.io/kubernetes-namespace: ${{ values.namespace }}
   labels:
     app: ${{ values.appName }}
+    app.kubernetes.io/name: ${{ values.appName }}
+    app.kubernetes.io/part-of: ${{ values.appName }}
 spec:
   replicas: ${{ values.replicas }}
   selector:
     matchLabels:
-      app: ${{ values.appName }}
+      app.kubernetes.io/name: ${{ values.appName }}   
   template:
     metadata:
       labels:
+        app.kubernetes.io/name: ${{ values.appName }}  
         app: ${{ values.appName }}
     spec:
       containers:

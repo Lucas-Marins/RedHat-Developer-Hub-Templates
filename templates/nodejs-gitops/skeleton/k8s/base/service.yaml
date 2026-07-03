@@ -4,9 +4,11 @@ metadata:
   name: ${{ values.appName }}
   labels:
     app: ${{ values.appName }}
+    app.kubernetes.io/name: ${{ values.appName }}
+    app.kubernetes.io/part-of: ${{ values.appName }}
 spec:
   selector:
-    app: ${{ values.appName }}
+    app.kubernetes.io/name: ${{ values.appName }}
   ports:
     - protocol: TCP
       port: 8080

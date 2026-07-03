@@ -4,6 +4,7 @@ metadata:
   name: ${{ values.appName }}
   labels:
     app: ${{ values.appName }}
+    app.kubernetes.io/name: ${{ values.appName }}
 spec:
   to:
     kind: Service
