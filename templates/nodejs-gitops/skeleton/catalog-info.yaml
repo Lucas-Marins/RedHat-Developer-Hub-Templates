@@ -3,7 +3,7 @@ kind: Component
 metadata:
   name: ${{ values.appName }}
   description: ${{ values.description }}
-  namespace: ${{ values.namespace | lower | replace("_", "-") | replace(".", "-") }}    
+  namespace: ${{ values.namespace }}
   annotations:
     github.com/project-slug: ${{ values.githubOrg }}/${{ values.appName }}
     backstage.io/kubernetes-id: ${{ values.appName }}
@@ -26,6 +26,6 @@ apiVersion: backstage.io/v1alpha1
 kind: System
 metadata:
   name: ${{ values.appName }}-system
-  namespace: ${{ values.namespace | lower | replace("_", "-") | replace(".", "-") }}    
+  namespace: ${{ values.namespace }}
 spec:
   owner: ${{ values.owner }}
