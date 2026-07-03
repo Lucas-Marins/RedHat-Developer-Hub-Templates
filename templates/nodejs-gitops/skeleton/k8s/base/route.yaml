@@ -8,8 +8,5 @@ spec:
   to:
     kind: Service
     name: ${{ values.appName }}
-  port:
-    targetPort: http
   tls:
     termination: edge
-    insecureEdgeTerminationPolicy: Redirect

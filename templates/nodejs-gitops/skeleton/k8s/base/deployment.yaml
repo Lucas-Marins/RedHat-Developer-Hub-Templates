@@ -18,9 +18,9 @@ spec:
         - name: app
           image: docker.io/${{ values.dockerHubUsername }}/${{ values.appName }}:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 8080
           env:
             - name: NODE_ENV
               value: production
             - name: PORT
-              value: "3000"
+              value: "8080"

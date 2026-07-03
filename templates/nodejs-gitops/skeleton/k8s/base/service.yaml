@@ -8,8 +8,6 @@ spec:
   selector:
     app: ${{ values.appName }}
   ports:
-    - name: http
-      port: 80
-      targetPort: 3000
-      protocol: TCP
-  type: ClusterIP
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
