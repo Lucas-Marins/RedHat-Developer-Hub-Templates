@@ -8,6 +8,7 @@ metadata:
     app: ${{ values.appName }}
     app.kubernetes.io/name: ${{ values.appName }}
     app.kubernetes.io/part-of: ${{ values.appName }}
+    backstage.io/kubernetes-id: ${{ values.appName }}   # <-- ADICIONAR AQUI
 spec:
   replicas: ${{ values.replicas }}
   selector:
