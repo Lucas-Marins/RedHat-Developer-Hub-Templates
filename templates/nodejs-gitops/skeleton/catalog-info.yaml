@@ -17,4 +17,4 @@ spec:
   type: service
   lifecycle: experimental
   owner: ${{ values.owner }}
-  system: ${{ values.appName }}-system   
+  system: nodejs-app    # ← System único por app
