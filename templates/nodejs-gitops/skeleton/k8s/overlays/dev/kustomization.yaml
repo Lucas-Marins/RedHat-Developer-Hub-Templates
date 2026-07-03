@@ -15,3 +15,12 @@ images:
 replicas:
   - name: ${{ values.appName }}
     count: 1
+
+patches:
+  - target:
+      kind: Route
+      name: ${{ values.appName }}
+    patch: |
+      - op: replace
+        path: /spec/to/name
+        value: dev-${{ values.appName }}
