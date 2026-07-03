@@ -63,7 +63,7 @@ jobs:
       - name: Apply ApplicationSet
         run: |
           oc login --token=${{ secrets.OPENSHIFT_TOKEN }} \
-            --server=https://api.cluster-xv7kd.dynamic.redhatworkshops.io:6443 \
+            --server=https://api.cluster-fr887.dynamic.redhatworkshops.io:6443 \
             --insecure-skip-tls-verify
           oc apply -f argocd/applicationset.yaml -n openshift-gitops
         env:
