@@ -23,7 +23,7 @@ spec:
     - title: Informações da Aplicação
       required:
         - appName
-        # - description
+        - description
         # - owner
       properties:
         appName:
@@ -35,10 +35,10 @@ spec:
           ui:options:
             rows: 1
 
-        # description:
-        #   title: Descrição
-        #   type: string
-        #   description: Breve descrição do que a aplicação faz
+        description:
+          title: Descrição
+          type: string
+          description: Breve descrição do que a aplicação faz
 
         # owner:
         #   title: Time Responsável
