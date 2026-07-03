@@ -24,7 +24,7 @@ spec:
       required:
         - appName
         - description
-        # - owner
+        - owner
       properties:
         appName:
           title: Nome da Aplicação
