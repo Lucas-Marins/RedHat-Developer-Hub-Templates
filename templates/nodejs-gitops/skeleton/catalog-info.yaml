@@ -5,8 +5,8 @@ metadata:
   description: ${{ values.description }}
   annotations:
     github.com/project-slug: ${{ values.githubOrg }}/${{ values.appName }}
-    backstage.io/kubernetes-id: ${{ values.appName }}
     backstage.io/kubernetes-namespace: ${{ values.namespace }}
+    backstage.io/kubernetes-label-selector: 'app.kubernetes.io/part-of=${{ values.appName }}'
     backstage.io/techdocs-ref: dir:.
     argocd/app-name: ${{ values.appName }}-${{ values.environment }}
     argocd/instance-name: main
