@@ -5,6 +5,8 @@ metadata:
   labels:
     app: ${{ values.appName }}
     app.kubernetes.io/name: ${{ values.appName }}
+    app.kubernetes.io/part-of: ${{ values.appName }}
+    backstage.io/kubernetes-id: ${{ values.appName }}   # <-- necessário para o Backstage
 spec:
   to:
     kind: Service
