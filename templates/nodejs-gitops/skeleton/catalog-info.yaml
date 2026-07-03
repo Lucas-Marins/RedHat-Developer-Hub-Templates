@@ -12,6 +12,7 @@ metadata:
     argocd/app-name: ${{ values.appName }}-${{ values.environment }}
     argocd/instance-name: main
     github.com/workflow-ref: .github/workflows/ci.yml
+    jaegertracing.io/service: ${{ values.appName }}
   tags:
     - nodejs
     - express
