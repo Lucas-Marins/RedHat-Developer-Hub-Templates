@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: Lucas-Marins
+  annotations:
+    github.com/user-login: Lucas-Marins
+spec:
+  profile:
+    displayName: Lucas Marins
+    email: lmarins02@hotmail.com.br
+  memberOf: []
