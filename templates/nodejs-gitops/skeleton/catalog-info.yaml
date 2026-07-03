@@ -7,7 +7,9 @@ metadata:
     github.com/project-slug: ${{ values.githubOrg }}/${{ values.appName }}
     backstage.io/kubernetes-id: ${{ values.appName }}
     backstage.io/kubernetes-namespace: ${{ values.namespace }}
+    backstage.io/techdocs-ref: dir:.
     argocd/app-name: ${{ values.appName }}-${{ values.environment }}
+    argocd/instance-name: main
   tags:
     - nodejs
     - express
@@ -17,4 +19,11 @@ spec:
   type: service
   lifecycle: experimental
   owner: ${{ values.owner }}
-  system: ${{ values.appName }}-system    # ← System único por app
+  system: ${{ values.appName }}-system
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: ${{ values.appName }}-system
+spec:
+  owner: ${{ values.owner }}
