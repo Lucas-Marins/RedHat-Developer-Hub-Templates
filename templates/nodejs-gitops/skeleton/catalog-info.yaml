@@ -39,6 +39,7 @@ kind: API
 metadata:
   name: ${{ values.appName }}-api
   namespace: ${{ values.namespace }}
+  backstage.io/kubernetes-id: ${{ values.appName }}
 spec:
   type: openapi
   lifecycle: experimental
