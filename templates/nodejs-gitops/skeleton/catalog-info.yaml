@@ -12,6 +12,7 @@ metadata:
     argocd/app-name: ${{ values.appName }}-${{ values.environment }}
     argocd/instance-name: main
     github.com/workflow-ref: .github/workflows/ci.yml
+    sonarqube.org/project-key: ${{ values.appName }}
   tags:
     - nodejs
     - express
