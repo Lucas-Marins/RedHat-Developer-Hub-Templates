@@ -35,13 +35,13 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: node-v6-api
-  namespace: nodejs-apps
+  name: ${{ values.appName }}-api  
+  namespace: ${{ values.namespace }} 
 spec:
   type: openapi
   lifecycle: experimental
-  owner: lucas
-  system: nodejs-apps/node-v6-system
+  owner: ${{ values.owner }}
+  system: ${{ values.appName }}-system  
   definition: |
     openapi: 3.0.0
     info:
