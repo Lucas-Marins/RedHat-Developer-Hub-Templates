@@ -23,6 +23,8 @@ spec:
   lifecycle: experimental
   owner: ${{ values.owner }}
   system: ${{ values.appName }}-system
+  providesApis:
+    - ${{ values.appName }}-api    # ← linka a API ao componente!
 ---
 apiVersion: backstage.io/v1alpha1
 kind: System
@@ -35,19 +37,12 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: ${{ values.appName }}-api  
-  namespace: ${{ values.namespace }} 
+  name: ${{ values.appName }}-api
+  namespace: ${{ values.namespace }}
 spec:
   type: openapi
   lifecycle: experimental
   owner: ${{ values.owner }}
-  system: ${{ values.appName }}-system  
-  definition: |
-    openapi: 3.0.0
-    info:
-      title: Node v6 API
-      version: 1.0.0
-    paths:
-      /health:
-        get:
-          summary: Health check
+  system: ${{ values.appName }}-system
+  definition:
+    $text: ./openapi.yaml
