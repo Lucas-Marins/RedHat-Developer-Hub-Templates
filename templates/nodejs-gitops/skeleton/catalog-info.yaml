@@ -32,6 +32,7 @@ metadata:
   name: ${{ values.appName }}-system
   namespace: ${{ values.namespace }}
   backstage.io/kubernetes-id: ${{ values.appName }}
+  backstage.io/kubernetes-namespace: ${{ values.namespace }}
 spec:
   owner: ${{ values.owner }}
 ---
@@ -41,6 +42,7 @@ metadata:
   name: ${{ values.appName }}-api
   namespace: ${{ values.namespace }}
   backstage.io/kubernetes-id: ${{ values.appName }}
+  backstage.io/kubernetes-namespace: ${{ values.namespace }}
 spec:
   type: openapi
   lifecycle: experimental
