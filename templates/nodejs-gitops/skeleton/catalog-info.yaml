@@ -31,6 +31,7 @@ kind: System
 metadata:
   name: ${{ values.appName }}-system
   namespace: ${{ values.namespace }}
+  backstage.io/kubernetes-id: ${{ values.appName }}
 spec:
   owner: ${{ values.owner }}
 ---
