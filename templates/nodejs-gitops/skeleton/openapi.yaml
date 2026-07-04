@@ -1,0 +1,221 @@
+openapi: 3.0.0
+info:
+  title: ${{ values.appName }} API
+  description: API REST do serviço ${{ values.appName }} construída com Node.js e Express
+  version: 1.0.0
+  contact:
+    name: ${{ values.owner }}
+    email: ${{ values.owner }}@example.com
+
+servers:
+  - url: http://localhost:3000
+    description: Desenvolvimento local
+  - url: https://${{ values.appName }}-${{ values.environment }}.apps.cluster-fr887.dynamic.redhatworkshops.io
+    description: Ambiente ${{ values.environment }}
+
+tags:
+  - name: Health
+    description: Endpoints de verificação de saúde
+  - name: Greetings
+    description: Endpoints de saudação e teste
+  - name: Users
+    description: Operações CRUD de usuários (exemplo)
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Verifica se a aplicação está respondendo corretamente
+      tags:
+        - Health
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Aplicação saudável
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Erro interno na aplicação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /:
+    get:
+      summary: Hello World
+      description: Retorna uma mensagem de boas-vindas com o nome da aplicação
+      tags:
+        - Greetings
+      operationId: helloWorld
+      responses:
+        '200':
+          description: Mensagem de sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelloResponse'
+
+  /api/users:
+    get:
+      summary: Listar usuários
+      description: Retorna uma lista de usuários de exemplo
+      tags:
+        - Users
+      operationId: listUsers
+      responses:
+        '200':
+          description: Lista de usuários retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Erro ao buscar usuários
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Criar usuário
+      description: Cria um novo usuário (exemplo de POST)
+      tags:
+        - Users
+      operationId: createUser
+      requestBody:
+        required: true
+        description: Dados do usuário a ser criado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Dados inválidos enviados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/{id}:
+    get:
+      summary: Buscar usuário por ID
+      description: Retorna os detalhes de um usuário específico
+      tags:
+        - Users
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do usuário
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: UP
+          description: Status da aplicação
+      required:
+        - status
+
+    HelloResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Hello from node-v6!
+          description: Mensagem de boas-vindas
+      required:
+        - message
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID único do usuário
+        name:
+          type: string
+          example: Lucas Marins
+          description: Nome do usuário
+        email:
+          type: string
+          format: email
+          example: lucas@example.com
+          description: E-mail do usuário
+        role:
+          type: string
+          example: developer
+          enum: [developer, admin, viewer]
+          description: Papel do usuário no sistema
+      required:
+        - id
+        - name
+        - email
+
+    CreateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Lucas Marins
+          description: Nome do usuário
+        email:
+          type: string
+          format: email
+          example: lucas@example.com
+          description: E-mail do usuário
+        role:
+          type: string
+          example: developer
+          enum: [developer, admin, viewer]
+          description: Papel do usuário
+      required:
+        - name
+        - email
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Internal Server Error
+          description: Descrição do erro
+        message:
+          type: string
+          example: Ocorreu um erro inesperado
+          description: Mensagem detalhada do erro
+      required:
+        - error
