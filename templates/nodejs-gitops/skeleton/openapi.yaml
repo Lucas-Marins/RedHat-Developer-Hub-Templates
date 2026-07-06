@@ -10,7 +10,7 @@ info:
 servers:
   - url: http://localhost:3000
     description: Desenvolvimento local
-  - url: https://${{ values.appName }}-${{ values.environment }}.apps.cluster-77fv6.dynamic.redhatworkshops.io
+  - url: https://${{ values.appName }}-${{ values.environment }}.apps.cluster-pvdxh.dynamic.redhatworkshops.io
     description: Ambiente ${{ values.environment }}
 
 tags:
