@@ -27,7 +27,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarqube-cicd.apps.cluster-vnp4c.dynamic.redhatworkshops.io
+          SONAR_HOST_URL: https://sonarqube-cicd.apps.cluster-vkwxv.dynamic.redhatworkshops.io
 
   build:
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
       - name: Apply ApplicationSet
         run: |
           oc login --token=${{ secrets.OPENSHIFT_TOKEN }} \
-            --server=https://api.cluster-vnp4c.dynamic.redhatworkshops.io:6443 \
+            --server=https://api.cluster-vkwxv.dynamic.redhatworkshops.io:6443 \
             --insecure-skip-tls-verify
           oc apply -f argocd/applicationset.yaml -n openshift-gitops
         env:

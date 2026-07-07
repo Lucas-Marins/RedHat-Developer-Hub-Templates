@@ -175,14 +175,14 @@ spec:
         url: ${{ steps['publish-app'].output.catalogInfoUrl }}
         icon: catalog
       - title: Aplicação no ArgoCD
-        url: https://openshift-gitops-server-openshift-gitops.apps.cluster-xv7kd.dynamic.redhatworkshops.io/applications/${{ parameters.appName }}-${{ parameters.environment }}
+        url: https://openshift-gitops-server-openshift-gitops.apps.cluster-vkwxv.dynamic.redhatworkshops.io/applications/${{ parameters.appName }}-${{ parameters.environment }}
         icon: catalog
     text:
       - title: Crie a aplicação no ArgoCD manualmente
         content: |
           Os secrets do Docker Hub já estão configurados via Org-LucasTSST — nada a fazer aí.
 
-          1. Acesse: https://openshift-gitops-server-openshift-gitops.apps.cluster-xv7kd.dynamic.redhatworkshops.io
+          1. Acesse: https://openshift-gitops-server-openshift-gitops.apps.cluster-vkwxv.dynamic.redhatworkshops.io
           2. New App → Name: `${{ parameters.appName }}-${{ parameters.environment }}`
           3. Source: `${{ steps['publish-gitops'].output.remoteUrl }}`
           4. Path: `overlays/${{ parameters.environment }}`
